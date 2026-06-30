@@ -31,7 +31,7 @@ interface Interview {
 	feedback_report?: FeedbackReportData;
 }
 
-type ViewState = "dashboard" | "voice_session" | "feedback";
+type ViewState = "dashboard" | "voice_session" | "feedback" | "generating_report";
 
 // NOTE: reconstructed — adjust labels/accents/keys to match your actual options.
 const interviewTypeOptions = [
@@ -78,6 +78,8 @@ export default function InterviewDashboardPage() {
 	const [selectedFeedback, setSelectedFeedback] = useState<
 		FeedbackReportData | undefined
 	>(undefined);
+	const [pollSessionId, setPollSessionId] = useState<number | null>(null);
+	const [pollElapsedSeconds, setPollElapsedSeconds] = useState(0);
 
 	const [interviews, setInterviews] = useState<Interview[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -115,15 +117,64 @@ export default function InterviewDashboardPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	useEffect(() => {
+		if (view !== "generating_report" || !pollSessionId) {
+			setPollElapsedSeconds(0);
+			return;
+		}
+
+		const timeInterval = setInterval(() => {
+			setPollElapsedSeconds((prev) => prev + 1);
+		}, 1000);
+
+		const pollInterval = setInterval(async () => {
+			try {
+				const response = await callBackendAPI(`/api/interviews/${pollSessionId}`, {
+					method: "GET",
+				});
+				if (response.ok) {
+					const data = await response.json();
+					const interview = data.interview;
+					if (interview && interview.status === "completed" && interview.feedback_report) {
+						clearInterval(pollInterval);
+						clearInterval(timeInterval);
+						await refreshInterviews();
+						setSelectedFeedback(interview.feedback_report);
+						setView("feedback");
+						setPollSessionId(null);
+					}
+				}
+			} catch (err) {
+				console.error("Error polling for feedback:", err);
+			}
+		}, 2000);
+
+		return () => {
+			clearInterval(pollInterval);
+			clearInterval(timeInterval);
+		};
+	}, [view, pollSessionId]);
+
 	const handleViewFeedback = (feedback?: FeedbackReportData) => {
 		if (!feedback) return;
 		setSelectedFeedback(feedback);
 		setView("feedback");
 	};
 
-	const handleInterviewComplete = async () => {
-		await refreshInterviews();
+	const handleInterviewComplete = async (sessionId?: number) => {
+		if (sessionId) {
+			setPollSessionId(sessionId);
+			setView("generating_report");
+		} else {
+			await refreshInterviews();
+			setView("dashboard");
+		}
+	};
+
+	const handleCancelPolling = async () => {
+		setPollSessionId(null);
 		setView("dashboard");
+		await refreshInterviews();
 	};
 
 	const handleEditNote = (interview: Interview) => {
@@ -222,6 +273,107 @@ export default function InterviewDashboardPage() {
 						onBack={handleBackToDashboard}
 						interviewType={selectedInterviewType}
 					/>
+				</div>
+			</div>
+		);
+	}
+
+	// Generating Report Loading View
+	if (view === "generating_report") {
+		return (
+			<div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
+				<Navbar />
+				<div className="flex-1 flex flex-col items-center justify-center p-6 text-zinc-50 relative overflow-hidden">
+					{/* Glowing ambient background blur */}
+					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+					<div className="max-w-md w-full bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl relative text-center">
+						
+						{/* Pulsing Visual Wave Circle */}
+						<div className="relative w-28 h-28 mx-auto mb-8 flex items-center justify-center">
+							<div className="absolute inset-0 rounded-full bg-violet-500/10 border border-violet-500/20 animate-ping duration-[2500ms]"></div>
+							<div className="absolute inset-2 rounded-full bg-fuchsia-500/5 border border-fuchsia-500/30 animate-pulse"></div>
+							<div className="relative w-16 h-16 rounded-full bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-600/30 animate-bounce duration-[1500ms]">
+								<span className="text-2xl text-white">🤖</span>
+							</div>
+						</div>
+
+						{/* Title */}
+						<h2 className="text-2xl font-bold text-zinc-50 mb-2">
+							Evaluating Performance
+						</h2>
+						<p className="text-zinc-400 text-sm mb-8 leading-relaxed">
+							Our AI agent is reviewing the audio transcript and scoring your answers. Please keep this page open.
+						</p>
+
+						{/* Progress Milestones */}
+						<div className="space-y-4 text-left max-w-xs mx-auto mb-8">
+							<div className="flex items-center gap-3">
+								<span className="text-emerald-400 text-lg">✓</span>
+								<span className="text-sm font-medium text-zinc-300">Voice call completed</span>
+							</div>
+
+							<div className="flex items-center gap-3">
+								{pollElapsedSeconds >= 4 ? (
+									<>
+										<span className="text-emerald-400 text-lg">✓</span>
+										<span className="text-sm font-medium text-zinc-300">Transcript compiled</span>
+									</>
+								) : (
+									<>
+										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
+										<span className="text-sm text-zinc-400 animate-pulse">Compiling transcript...</span>
+									</>
+								)}
+							</div>
+
+							<div className="flex items-center gap-3">
+								{pollElapsedSeconds >= 8 ? (
+									<>
+										<span className="text-emerald-400 text-lg">✓</span>
+										<span className="text-sm font-medium text-zinc-300">AI analysis finished</span>
+									</>
+								) : pollElapsedSeconds >= 4 ? (
+									<>
+										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
+										<span className="text-sm text-zinc-400 animate-pulse">AI evaluating response...</span>
+									</>
+								) : (
+									<>
+										<span className="w-2 h-2 rounded-full bg-zinc-700"></span>
+										<span className="text-sm text-zinc-500">AI evaluation pending</span>
+									</>
+								)}
+							</div>
+
+							<div className="flex items-center gap-3">
+								{pollElapsedSeconds >= 12 ? (
+									<>
+										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
+										<span className="text-sm text-zinc-400 animate-pulse">Building report card...</span>
+									</>
+								) : pollElapsedSeconds >= 8 ? (
+									<>
+										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
+										<span className="text-sm text-zinc-400 animate-pulse">Compiling metrics...</span>
+									</>
+								) : (
+									<>
+										<span className="w-2 h-2 rounded-full bg-zinc-700"></span>
+										<span className="text-sm text-zinc-500">Building report card</span>
+									</>
+								)}
+							</div>
+						</div>
+
+						{/* Cancel Button */}
+						<button
+							onClick={handleCancelPolling}
+							className="text-xs font-semibold text-zinc-400 hover:text-zinc-50 transition border border-zinc-800 hover:border-zinc-700 bg-zinc-950 px-4 py-2.5 rounded-xl"
+						>
+							Cancel & Return to Dashboard
+						</button>
+					</div>
 				</div>
 			</div>
 		);

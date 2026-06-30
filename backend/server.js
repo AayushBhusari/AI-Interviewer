@@ -221,6 +221,32 @@ app.post("/api/interviews/start", verifyAuthToken, async (req, res) => {
   }
 });
 
+// GET /api/interviews/:id
+app.get("/api/interviews/:id", verifyAuthToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const interviewId = Number(req.params.id);
+
+    if (!Number.isInteger(interviewId)) {
+      return res.status(400).json({ error: "Invalid interview id" });
+    }
+
+    const result = await pool.query(
+      "SELECT id, status, interview_type, notes, feedback_report, created_at FROM interview_sessions WHERE id = $1 AND user_id = $2",
+      [interviewId, userId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Interview not found" });
+    }
+
+    res.json({ interview: result.rows[0] });
+  } catch (err) {
+    console.error("Get single interview error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // PATCH /api/interviews/:id/note
 app.patch("/api/interviews/:id/note", verifyAuthToken, async (req, res) => {
   try {

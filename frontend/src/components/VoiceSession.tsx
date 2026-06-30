@@ -59,9 +59,10 @@ export default function VoiceSession({
   const [dbSessionId, setDbSessionId] = useState<number | null>(null);
   const dbSessionIdRef = useRef<number | null>(null);
   const [error, setError] = useState("");
+  const [showEndedModal, setShowEndedModal] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [targetRole, setTargetRole] = useState("");
+  const [targetRole, setTargetRole] = useState("React Developer");
 
   const interviewMeta = interviewTypeMeta[interviewType];
 
@@ -97,9 +98,7 @@ export default function VoiceSession({
       console.log("Call ended");
       setIsLive(false);
       setLoading(false);
-      if (dbSessionIdRef.current) {
-        onComplete(dbSessionIdRef.current);
-      }
+      setShowEndedModal(true);
     });
 
     vapi.on("error", (error) => {
@@ -145,6 +144,7 @@ export default function VoiceSession({
       const vapi = vapiRef.current;
       if (vapi) {
         vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, {
+
           variableValues: {
             dbSessionId: sessionId.toString(),
             interviewType,
@@ -167,7 +167,6 @@ export default function VoiceSession({
     const vapi = vapiRef.current;
     if (vapi) {
       vapi.stop();
-      alert("interview ended");
     }
   };
 
@@ -200,10 +199,10 @@ export default function VoiceSession({
           <div className="mb-12 flex justify-center">
             <div
               className={`relative w-32 h-32 rounded-full border-4 flex items-center justify-center transition-all duration-300 ${isLive
-                  ? "bg-fuchsia-500/10 border-fuchsia-500/40 animate-pulse"
-                  : loading
-                    ? "bg-violet-500/10 border-violet-500/40"
-                    : "bg-zinc-800 border-zinc-700"
+                ? "bg-fuchsia-500/10 border-fuchsia-500/40 animate-pulse"
+                : loading
+                  ? "bg-violet-500/10 border-violet-500/40"
+                  : "bg-zinc-800 border-zinc-700"
                 }`}
             >
               {loading && (
@@ -319,6 +318,44 @@ export default function VoiceSession({
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showEndedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4 animate-fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl relative overflow-hidden">
+            {/* Decorative top border */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-600 to-fuchsia-500"></div>
+
+            {/* Success Icon */}
+            <div className="w-16 h-16 rounded-full bg-violet-600/10 border border-violet-500/20 flex items-center justify-center mx-auto mb-6">
+              <span className="text-3xl text-violet-400">🎉</span>
+            </div>
+
+            {/* Title & Message */}
+            <h2 className="text-2xl font-bold text-zinc-50 mb-3">
+              Interview Completed
+            </h2>
+            <p className="text-zinc-400 mb-8 leading-relaxed text-sm">
+              Great job! Your responses have been submitted successfully. Our AI evaluator is already analyzing your transcript to generate your detailed feedback report.
+            </p>
+
+            {/* Action Button */}
+            <button
+              onClick={() => {
+                setShowEndedModal(false);
+                if (dbSessionIdRef.current) {
+                  onComplete(dbSessionIdRef.current);
+                } else if (onBack) {
+                  onBack();
+                }
+              }}
+              className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl transition shadow-lg shadow-violet-600/20"
+            >
+              Go Home
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

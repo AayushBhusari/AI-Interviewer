@@ -83,7 +83,7 @@ ai-interview/
 - Express.js server initialization
 - Auth, interview, webhook, and health routes
 - Interview type validation and prompt routing
-- OpenAI GPT-4o-mini integration
+- Groq Llama-3.3-70b-versatile integration
 - Error handling and logging
 - CORS and middleware setup
 
@@ -113,7 +113,8 @@ ai-interview/
     "dotenv": "^16.3.1",
     "cors": "^2.8.5",
     "axios": "^1.6.7",
-    "openai": "^4.40.0"
+    "openai": "^4.40.0",
+    "groq-sdk": "^0.15.0"
   }
 }
 ```
@@ -159,7 +160,7 @@ PORT=5000
 NODE_ENV=development
 DATABASE_URL=postgresql://user:pass@localhost:5432/mentorque_db
 JWT_SECRET=secure_random_string
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk_...
 VAPI_API_KEY=...
 ```
 
@@ -193,7 +194,7 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=...
 
 ### Webhooks
 
-- `POST /api/vapi-webhook` → Receives call transcript from Vapi, prompts OpenAI, saves feedback JSON
+- `POST /api/vapi-webhook` → Receives call transcript from Vapi, prompts Groq, saves feedback JSON
 - `GET /api/health` → Health check route
 
 ## Database Schema
@@ -252,6 +253,7 @@ created_at (timestamp) → session start time
 ✅ HTTP-only cookies (XSS prevention)
 ✅ Password hashing with bcryptjs
 ✅ JWT expiration (2 hours)
+✅ Auto-redirect on token expiry (intercepts 401 responses globally and redirects user to `/login`)
 ✅ CORS protection with credentials
 ✅ Bearer token and cookie validation
 ✅ SQL injection prevention (parameterized queries)
@@ -272,7 +274,7 @@ created_at (timestamp) → session start time
 - [ ] Interview session creates DB record
 - [ ] Vapi integration starts call
 - [ ] Webhook receives transcript
-- [ ] OpenAI generates feedback
+- [ ] Groq generates feedback
 - [ ] Feedback displays correctly
 - [ ] Logout clears all cookies
 

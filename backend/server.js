@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
-import { OpenAI } from "openai";
+import Groq from "groq-sdk";
 import pool, { initializeDatabase } from "./db.js";
 import { verifyAuthToken } from "./middleware/auth.js";
 
@@ -22,9 +22,9 @@ app.use(
 );
 app.use(express.json());
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Initialize Groq
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 // ================= AUTH ROUTES =================
@@ -283,16 +283,32 @@ app.delete("/api/interviews/:id", verifyAuthToken, async (req, res) => {
 app.post("/api/vapi-webhook", async (req, res) => {
   try {
     const payload = req.body;
+    console.log("Incoming Vapi webhook event:", payload?.type || payload?.message?.type);
+    console.log("Full Webhook Payload:", JSON.stringify(payload, null, 2));
+
+    // Support both wrapped in 'message' and flat formats
+    const message = payload.message || payload;
 
     // Check if this is an end-of-call-report
-    if (payload.type !== "end-of-call-report") {
+    if (message.type !== "end-of-call-report") {
       return res.json({ received: true });
     }
 
-    const dbSessionId = payload.variableValues?.dbSessionId;
-    const transcript = payload.transcript || "";
+    // Extract dynamic variables and transcript from possible nested paths
+    const variableValues =
+      message.variableValues ||
+      message.call?.variableValues ||
+      message.call?.assistantOverrides?.variableValues ||
+      payload.variableValues ||
+      payload.call?.assistantOverrides?.variableValues ||
+      {};
+    const dbSessionId = variableValues?.dbSessionId;
+    const transcript = message.artifact?.transcript || message.transcript || message.call?.artifact?.transcript || payload.transcript || "";
+
+    console.log("Processing end-of-call-report for DB Session ID:", dbSessionId);
 
     if (!dbSessionId) {
+      console.error("Error: Missing dbSessionId in webhook variables");
       return res.status(400).json({ error: "Missing dbSessionId" });
     }
 
@@ -305,7 +321,7 @@ app.post("/api/vapi-webhook", async (req, res) => {
     const interviewTypeLabel =
       interviewTypeLabels[interviewType] || "Behavioral";
 
-    // Generate feedback using OpenAI
+    // Generate feedback using Groq
     const feedbackPrompt = `
 You are an expert ${interviewTypeLabel.toLowerCase()} interview evaluator. Analyze the following interview transcript and provide structured feedback in JSON format.
 
@@ -313,15 +329,14 @@ Interview type:
 ${interviewTypeLabel}
 
 Evaluation focus:
-${
-  interviewType === "technical"
-    ? "Depth of knowledge, correctness, problem-solving approach, and clarity of explanation."
-    : interviewType === "system_design"
-      ? "Architecture thinking, tradeoffs, scalability, complexity management, and communication."
-      : interviewType === "hr_culture_fit"
-        ? "Motivation, values alignment, situational judgment, and communication style."
-        : "Communication, STAR structure, self-awareness, and clarity of examples."
-}
+${interviewType === "technical"
+        ? "Depth of knowledge, correctness, problem-solving approach, and clarity of explanation."
+        : interviewType === "system_design"
+          ? "Architecture thinking, tradeoffs, scalability, complexity management, and communication."
+          : interviewType === "hr_culture_fit"
+            ? "Motivation, values alignment, situational judgment, and communication style."
+            : "Communication, STAR structure, self-awareness, and clarity of examples."
+      }
 
 Transcript:
 ${transcript}
@@ -341,8 +356,8 @@ Provide feedback in this exact JSON structure:
 }
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "user",
@@ -374,6 +389,7 @@ Provide feedback in this exact JSON structure:
       ],
     );
 
+    console.log("report generated bro");
     res.json({ success: true, feedbackReport });
   } catch (err) {
     console.error("Vapi webhook error:", err);

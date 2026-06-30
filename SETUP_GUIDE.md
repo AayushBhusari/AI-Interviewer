@@ -116,7 +116,7 @@ PORT=5000
 NODE_ENV=development
 DATABASE_URL=postgresql://neondb_owner:your_password@ep-your-project.neon.tech/neondb?sslmode=require
 JWT_SECRET=your_secure_random_string_here_generate_a_strong_one
-OPENAI_API_KEY=your_openai_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 VAPI_API_KEY=your_vapi_api_key_here
 FRONTEND_URL=http://localhost:3000
 ```
@@ -204,12 +204,14 @@ id | user_id | status | interview_type | notes | transcript | feedback_report | 
 
 ✅ **HTTP-only Cookies** - Prevents JavaScript access (XSS defense)
 ✅ **JWT Expiration** - 2-hour token lifetime
+✅ **Automatic Redirect on Expiry** - Intercepts `401 Unauthorized` responses globally in client-side requests and routes the user back to the login screen.
 ✅ **Password Hashing** - bcryptjs with salt rounds
 ✅ **CORS** - Frontend/backend communication with credentials
 ✅ **Protected Routes** - JWT middleware verification from cookie or bearer token
 ✅ **Cascading Deletes** - User deletion removes their data
 ✅ **Neon-friendly Pooling** - Backend pool tuned for serverless Postgres
 ✅ **Interview Type Picker** - Behavioral, Technical, System Design, HR / Culture Fit
+✅ **Dependency Override Security** - Resolved `@daily-co/daily-js` to `^0.91.0` within nested dependencies (like `@vapi-ai/web`) to fix deprecated support warnings in the browser console.
 
 ---
 
@@ -246,7 +248,7 @@ These can be added later if needed:
 ## ⚠️ Important Notes
 
 1. **Vapi Setup Required**: Get credentials from vapi.ai
-2. **OpenAI API Key Required**: For feedback generation
+2. **Groq API Key Required**: For feedback generation
 3. **Neon Database Required**: Use the connection string from your Neon project settings
 4. **Both Servers Need to Run**: Backend on 5000, Frontend on 3000
 5. **Env Files Stay Local**: Commit `.env.example`, keep `.env` and `.env.local` out of Git

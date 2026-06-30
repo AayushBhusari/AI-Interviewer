@@ -8,7 +8,7 @@ A full-stack AI-powered mock interview platform with voice interface, PostgreSQL
 
 - 🔐 **Backend-owned JWT auth** - bcryptjs password hashing, HTTP-only cookies, protected API routes
 - 🎙️ **Vapi AI Voice Integration** - Real-time voice interviews with AI evaluator
-- 🧠 **AI-Powered Feedback** - OpenAI GPT-4o-mini analysis of interview transcripts
+- 🧠 **AI-Powered Feedback** - Groq Llama-3.3-70b-versatile analysis of interview transcripts
 - 🎯 **Interview type selection** - Behavioral, Technical, System Design, and HR / Culture Fit
 - 📊 **Interactive Dashboard** - Dark-tech interface with Tailwind CSS
 - 💾 **Neon PostgreSQL** - Persistent storage for users and interview sessions
@@ -61,7 +61,7 @@ frontend/
 - Node.js 18+
 - PostgreSQL 12+
 - Vapi AI Account (https://vapi.ai)
-- OpenAI API Key (https://openai.com/api)
+- Groq API Key (https://console.groq.com/)
 
 ### 1. Backend Setup
 
@@ -77,7 +77,7 @@ cp .env.example .env
 # Edit .env with your credentials:
 # DATABASE_URL=postgresql://neondb_owner:password@ep-your-project.neon.tech/neondb?sslmode=require
 # JWT_SECRET=your_very_secure_random_string_here
-# OPENAI_API_KEY=sk-...
+# GROQ_API_KEY=gsk_...
 # VAPI_API_KEY=your_vapi_key
 # FRONTEND_URL=http://localhost:3000
 
@@ -113,7 +113,7 @@ PORT=5000
 NODE_ENV=development
 DATABASE_URL=postgresql://neondb_owner:password@ep-your-project.neon.tech/neondb?sslmode=require
 JWT_SECRET=generate_a_secure_random_key_here
-OPENAI_API_KEY=sk-your_openai_key
+GROQ_API_KEY=gsk_your_groq_key
 VAPI_API_KEY=your_vapi_api_key
 FRONTEND_URL=http://localhost:3000
 ```
@@ -200,7 +200,7 @@ CREATE TABLE interview_sessions (
 5. Frontend initializes Vapi with `dbSessionId` and `interviewType` as variables
 6. User has a voice conversation with the AI interviewer
 7. Call ends → Vapi sends webhook to `POST /api/vapi-webhook`
-8. Backend loads the stored interview type, sends the transcript to OpenAI, and generates type-specific feedback
+8. Backend loads the stored interview type, sends the transcript to Groq, and generates type-specific feedback
 9. Feedback JSON is saved to the database
 10. Frontend polls for completion and displays the report
 
@@ -233,6 +233,7 @@ CREATE TABLE interview_sessions (
 - ✅ Backend middleware accepts cookie or bearer token
 - ✅ 2-hour token expiration
 - ✅ Separate userId cookie for client reference
+- ✅ Auto-redirect on token expiry (global client API wrapper catches 401 and routes user to `/login`)
 
 ### Database
 
@@ -246,12 +247,13 @@ CREATE TABLE interview_sessions (
 
 - ✅ Vapi AI SDK for voice handling
 - ✅ Variable injection for session tracking and interview type
+- ✅ Connecting/loading state UI (displays connecting spinner and messages prior to Vapi connection handshake completion)
 - ✅ Event listeners for call lifecycle
 - ✅ Polling mechanism for feedback completion
 
 ### AI Feedback
 
-- ✅ OpenAI GPT-4o-mini for fast analysis
+- ✅ Groq Llama-3.3-70b-versatile for fast analysis
 - ✅ Structured JSON feedback format
 - ✅ Interview-type-specific evaluation prompts
 - ✅ STAR method evaluation (Situation, Task, Action, Result)
@@ -290,13 +292,13 @@ kill -9 <PID>  # Kill process
 
 **Backend URL Not Found**
 
-- Verify `NEXT_PUBLIC_BACKEND_URL` in `.env.local`
+- Verify `NEXT_PUBLIC_BACKEND_URL` in `.env`
 - Ensure backend is running on correct port
 - Check CORS configuration in backend
 
 **Vapi Not Initialized**
 
-- Verify `NEXT_PUBLIC_VAPI_PUBLIC_KEY` is set
+- Verify `NEXT_PUBLIC_VAPI_PUBLIC_KEY` in `.env`
 - Check Vapi assistant exists and ID is correct
 - Review browser console for Vapi errors
 

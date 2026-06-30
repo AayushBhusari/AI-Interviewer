@@ -17,12 +17,15 @@
 ### Frontend Files (Updated)
 
 ✅ `frontend/package.json` - Added @vapi-ai/web
-✅ `frontend/.env.local` - Vapi & backend config
+✅ `frontend/.env` - Vapi & backend config
 ✅ `frontend/src/app/api/auth/login/route.ts` - Backend integration
 ✅ `frontend/src/app/api/auth/signup/route.ts` - New signup endpoint
 ✅ `frontend/src/app/api/auth/logout/route.ts` - Updated logout
+✅ `frontend/src/app/api/user/[[...path]]/route.ts` - New user profile proxy route
 ✅ `frontend/src/app/login/page.tsx` - Modern dark theme
 ✅ `frontend/src/app/signup/page.tsx` - New signup page
+✅ `frontend/src/app/onboarding/page.tsx` - User onboarding form (collects professional details/goals)
+✅ `frontend/src/app/profile/page.tsx` - User profile page (view and edit details)
 ✅ `frontend/src/app/dashboard/page.tsx` - Interview dashboard with type picker
 ✅ `frontend/src/app/page.tsx` - Home redirect logic
 ✅ `frontend/src/lib/api.ts` - API client with credentialed requests
@@ -136,7 +139,7 @@ npm install
 
 ### Step 5: Configure Frontend Environment
 
-**frontend/.env.local**:
+**frontend/.env**:
 
 ```
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
@@ -159,8 +162,9 @@ npm run dev
 ### 1. Create Account
 
 - Go to http://localhost:3000/signup
-- Sign up with: email, password
-- Auto-redirects to dashboard
+- Sign up with: name, email, password, confirmPassword
+- Auto-redirects to **Onboarding page** (`/onboarding`) to input surname, age, course/major, qualifications, and career goals.
+- Submitting onboarding details saves the profile and redirects to the **Dashboard** (`/dashboard`).
 
 ### 2. Interview Flow
 
@@ -170,13 +174,13 @@ npm run dev
 - After call ends → Polling for feedback
 - Feedback displays with scores, strengths, gaps, STAR feedback
 
-### 3. Dashboard
+### 3. Dashboard & Profile
 
 - View past interviews
 - Take and edit notes for each interview
 - Delete past interview sessions
-- See performance scores
-- Click to view detailed reports
+- See performance scores and detailed reports
+- Click the Navbar links to view/edit your **Profile** (`/profile`)
 
 ---
 
@@ -185,16 +189,10 @@ npm run dev
 ### users
 
 ```sql
-id | name | email | password_hash | created_at
+id | name | email | password_hash | surname | age | course | qualifications | goals | created_at
 ```
 
 ### interview_sessions
-
-```sql
-id | user_id | status | transcript | feedback_report | created_at
-```
-
-### interview_sessions current columns
 
 ```sql
 id | user_id | status | interview_type | notes | transcript | feedback_report | created_at
@@ -215,20 +213,13 @@ id | user_id | status | interview_type | notes | transcript | feedback_report | 
 
 ---
 
-## 🎨 Design System Implemented
-
-- **Color Palette**: zinc-950 (dark), violet-600 (accent), fuchsia-500 (live)
-- **Components**: Modern cards, animated buttons, responsive grid
-- **Theme**: Premium dark tech-startup aesthetic
-- **Animations**: Pulse effects, smooth transitions, hover states
-
----
-
 ## 📝 API Endpoints Ready
 
 ```
 POST   /api/signup              - Create account
 POST   /api/login               - Login & get token
+GET    /api/user/profile        - Fetch user profile & onboarding info
+POST   /api/user/profile        - Update user profile details
 GET    /api/interviews          - Fetch user interviews (protected)
 POST   /api/interviews/start    - Create session (protected)
 PATCH  /api/interviews/:id/note - Update interview notes
@@ -289,7 +280,7 @@ JWT_SECRET=your_random_secret_key
 
 **"Vapi call not starting"**
 
-- Verify VAPI_PUBLIC_KEY in frontend/.env.local
+- Verify VAPI_PUBLIC_KEY in frontend/.env
 - Check VAPI_ASSISTANT_ID exists in Vapi dashboard
 
 **"Invalid interview type"**

@@ -47,7 +47,7 @@ export default function SignupPage() {
         });
 
         if (loginResponse.ok) {
-          router.push("/dashboard");
+          router.push("/onboarding");
           router.refresh();
         } else {
           router.push("/login");

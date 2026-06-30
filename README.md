@@ -34,19 +34,24 @@ backend/
 frontend/
 ├── src/
 │   ├── app/
-│   │   ├── api/auth/    # API routes for authentication
-│   │   ├── login/       # Login page (modern dark theme)
-│   │   ├── signup/      # Signup page
-│   │   ├── dashboard/   # Interview dashboard with type picker, note-taking & deletion
+│   │   ├── api/
+│   │   │   ├── auth/          # Next.js API routes for authentication proxy/handlers
+│   │   │   └── user/          # Next.js API routes proxying profile endpoints
+│   │   ├── login/             # Login page
+│   │   ├── signup/            # Signup page
+│   │   ├── onboarding/        # User onboarding form
+│   │   ├── profile/           # User profile settings (view & edit)
+│   │   ├── dashboard/         # Dashboard with interview type selector, notes & history
 │   │   └── layout.tsx
 │   ├── components/
-│   │   ├── Navbar.tsx
-│   │   ├── VoiceSession.tsx    # Vapi integration and interview type handoff
-│   │   └── FeedbackReport.tsx  # AI feedback display
+│   │   ├── Navbar.tsx         # Global navigation bar
+│   │   ├── VoiceSession.tsx   # Live Vapi voice interface
+│   │   └── FeedbackReport.tsx # STAR evaluation feedback display
 │   └── lib/
-│       └── api.ts      # API client with credentialed requests
+│       ├── auth.ts            # Authentication comment details
+│       └── api.ts             # Direct backend API caller
 ├── package.json
-└── .env.local
+└── .env
 ```
 
 ## 🚀 Quick Start
@@ -89,7 +94,7 @@ cd frontend
 # Install dependencies
 npm install
 
-# Create/update .env.local:
+# Create/update .env:
 # NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 # NEXT_PUBLIC_VAPI_PUBLIC_KEY=your_vapi_public_key
 # NEXT_PUBLIC_VAPI_ASSISTANT_ID=your_vapi_assistant_id
@@ -113,7 +118,7 @@ VAPI_API_KEY=your_vapi_api_key
 FRONTEND_URL=http://localhost:3000
 ```
 
-### Frontend (.env.local)
+### Frontend (.env)
 
 ```
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
@@ -126,7 +131,12 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=your_vapi_assistant_id
 ### Authentication
 
 - `POST /api/signup` - Create new user account
-- `POST /api/login` - Login and receive JWT token
+- `POST /api/login` - Login, set HTTP-only cookie, and receive JWT token
+
+### User Profile (Protected)
+
+- `GET /api/user/profile` - Retrieve user profile/onboarding details (name, surname, age, course, qualifications, goals)
+- `POST /api/user/profile` - Update user profile/onboarding details
 
 ### Interviews (Protected)
 
@@ -149,6 +159,11 @@ CREATE TABLE users (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  surname VARCHAR(255),
+  age INTEGER,
+  course VARCHAR(255),
+  qualifications TEXT,
+  goals TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```

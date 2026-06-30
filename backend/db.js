@@ -45,9 +45,24 @@ export async function initializeDatabase() {
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
+        surname VARCHAR(255),
+        age INTEGER,
+        course VARCHAR(255),
+        qualifications TEXT,
+        goals TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+		// Alter existing users table to add new columns if they don't exist
+		await client.query(`
+		  ALTER TABLE users
+		  ADD COLUMN IF NOT EXISTS surname VARCHAR(255),
+		  ADD COLUMN IF NOT EXISTS age INTEGER,
+		  ADD COLUMN IF NOT EXISTS course VARCHAR(255),
+		  ADD COLUMN IF NOT EXISTS qualifications TEXT,
+		  ADD COLUMN IF NOT EXISTS goals TEXT;
+		`);
 
 		// Create interview_sessions table
 		await client.query(`

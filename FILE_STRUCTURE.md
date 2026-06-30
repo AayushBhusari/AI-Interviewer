@@ -5,60 +5,69 @@ ai-interview/
 │
 ├── 📄 README.md                      # Full documentation
 ├── 📄 SETUP_GUIDE.md                 # Quick start instructions
-├── 📄 CONFLICTS_RESOLVED.md          # Conflict resolution details
 ├── 📄 .gitignore                     # Single repo-level ignore file
 │
 ├── backend/
-│   ├── server.js                     # ✅ Express server, auth, interviews, webhook
-│   ├── db.js                         # ✅ Neon/PostgreSQL setup & schema bootstrap
-│   ├── package.json                  # ✅ Backend dependencies
-│   ├── .env.example                  # ✅ Environment template
+│   ├── server.js                     # Express server (auth, user profiles, interviews, Vapi webhook)
+│   ├── db.js                         # Neon/PostgreSQL setup & schema initialization/bootstrap
+│   ├── package.json                  # Backend dependencies
+│   ├── .env.example                  # Backend environment template
 │   │
 │   └── middleware/
-│       └── auth.js                   # ✅ JWT verification middleware
+│       └── auth.js                   # JWT verification middleware
 │
 └── frontend/
-    ├── package.json                  # ✅ Updated with Vapi SDK
-    ├── .env.local                    # ✅ Frontend config
-    ├── next.config.ts                # (existing)
-    ├── tsconfig.json                 # (existing)
-    ├── postcss.config.mjs             # (existing)
+    ├── package.json                  # Frontend dependencies (Next.js, Tailwind v4, Vapi SDK, etc.)
+    ├── .env                          # Frontend config (Vapi public key, assistant ID, backend URL)
+    ├── next.config.ts                # Next.js configuration
+    ├── tsconfig.json                 # TypeScript configuration
+    ├── postcss.config.mjs            # PostCSS configuration for Tailwind CSS v4
     │
     ├── src/
     │   │
     │   ├── app/
-    │   │   ├── layout.tsx             # (existing)
-    │   │   ├── page.tsx               # ✅ Home redirect logic
-    │   │   ├── globals.css            # (existing)
+    │   │   ├── layout.tsx             # Main layout component
+    │   │   ├── page.tsx               # Home redirect page (checks auth state)
+    │   │   ├── globals.css            # Global CSS styles
     │   │   │
     │   │   ├── api/
-    │   │   │   └── auth/
-    │   │   │       ├── login/
-    │   │   │       │   └── route.ts   # ✅ Updated - calls backend and stores HTTP-only JWT cookie
-    │   │   │       ├── signup/
-    │   │   │       │   └── route.ts   # ✅ NEW - creates account
-    │   │   │       └── logout/
-    │   │   │           └── route.ts   # ✅ Updated - clears cookies
+    │   │   │   ├── auth/
+    │   │   │   │   ├── login/
+    │   │   │   │   │   └── route.ts   # Local Next.js login API (proxies to backend & sets HTTP-only cookies)
+    │   │   │   │   ├── signup/
+    │   │   │   │   │   └── route.ts   # Local Next.js signup API (proxies to backend)
+    │   │   │   │   └── logout/
+    │   │   │   │       └── route.ts   # Local Next.js logout API (clears cookies)
+    │   │   │   │
+    │   │   │   └── user/
+    │   │   │       └── [[...path]]/
+    │   │   │           └── route.ts   # Next.js proxy route for profile endpoints
     │   │   │
     │   │   ├── login/
-    │   │   │   └── page.tsx           # ✅ Updated - modern dark theme
+    │   │   │   └── page.tsx           # Sign-in page with modern dark theme
     │   │   │
     │   │   ├── signup/
-    │   │   │   └── page.tsx           # ✅ NEW - signup form
+    │   │   │   └── page.tsx           # Sign-up page
+    │   │   │
+    │   │   ├── onboarding/
+    │   │   │   └── page.tsx           # User onboarding form (collects professional/course goals)
+    │   │   │
+    │   │   ├── profile/
+    │   │   │   └── page.tsx           # User profile management page (view and edit info)
     │   │   │
     │   │   └── dashboard/
-    │   │       └── page.tsx           # ✅ NEW - interview dashboard with type picker, note-taking & deletion
+    │   │       └── page.tsx           # Interview dashboard with type selector, note-taking & history
     │   │
     │   ├── components/
-    │   │   ├── Navbar.tsx             # ✅ NEW - navigation bar
-    │   │   ├── VoiceSession.tsx        # ✅ NEW - Vapi integration and type handoff
-    │   │   └── FeedbackReport.tsx      # ✅ NEW - feedback display
+    │   │   ├── Navbar.tsx             # Responsive global navigation bar
+    │   │   ├── VoiceSession.tsx       # Live voice session component with Vapi AI SDK
+    │   │   └── FeedbackReport.tsx     # Feedback evaluation display using STAR framework scoring
     │   │
     │   └── lib/
-    │       ├── auth.ts                # ✅ Legacy placeholder, JWT now lives in backend
-    │       └── api.ts                 # ✅ API client with credentialed requests
+    │       ├── auth.ts                # Reminder file noting JWT lives on backend
+    │       └── api.ts                 # Credentialed API helper for fetching backend endpoints
     │
-    └── public/                        # (existing)
+    └── public/                        # Static assets
 ```
 
 ## File Status Legend
@@ -154,7 +163,7 @@ OPENAI_API_KEY=sk-...
 VAPI_API_KEY=...
 ```
 
-### Frontend (.env.local)
+### Frontend (.env)
 
 ```
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
@@ -166,21 +175,26 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=...
 
 ### Authentication
 
-- `POST /api/signup` → Create user account
-- `POST /api/login` → Login & get JWT
-- `POST /api/auth/logout` → Clear cookies
+- `POST /api/signup` → Create user account (proxied)
+- `POST /api/login` → Login, retrieve JWT, and save to HTTP-only cookie (proxied)
+- `POST /api/auth/logout` → Clear HTTP-only JWT cookies (local Next.js endpoint)
+
+### User Profile (Protected)
+
+- `GET /api/user/profile` → Fetch user profile and onboarding details
+- `POST /api/user/profile` → Update user profile details (name, surname, age, course, qualifications, goals)
 
 ### Interviews (Protected)
 
-- `GET /api/interviews` → Fetch user's interviews
-- `POST /api/interviews/start` → Create new session
-- `PATCH /api/interviews/:id/note` → Update interview notes
+- `GET /api/interviews` → Fetch all interview sessions for the logged-in user
+- `POST /api/interviews/start` → Create a new interview session record
+- `PATCH /api/interviews/:id/note` → Save/update text notes for a specific session
 - `DELETE /api/interviews/:id` → Delete an interview session
 
 ### Webhooks
 
-- `POST /api/vapi-webhook` → Receive transcript & generate feedback
-- `GET /api/health` → Health check
+- `POST /api/vapi-webhook` → Receives call transcript from Vapi, prompts OpenAI, saves feedback JSON
+- `GET /api/health` → Health check route
 
 ## Database Schema
 
@@ -188,9 +202,14 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=...
 
 ```
 id (serial) → primary key
-name (varchar) → user full name
+name (varchar) → user first name
 email (varchar) → unique email
 password_hash (varchar) → bcrypt hash
+surname (varchar) → user surname
+age (integer) → user age
+course (varchar) → current course / major
+qualifications (text) → skills & key qualifications
+goals (text) → career goals & target roles
 created_at (timestamp) → registration time
 ```
 
@@ -198,11 +217,12 @@ created_at (timestamp) → registration time
 
 ```
 id (serial) → primary key
-user_id (int) → foreign key to users
+user_id (int) → foreign key to users (cascading deletes)
 status (varchar) → 'active' or 'completed'
-interview_type (varchar) → behavioral, technical, system_design, hr_culture_fit
-transcript (jsonb) → raw interview transcript
-feedback_report (jsonb) → AI feedback JSON
+interview_type (varchar) → behavioral, technical, system_design, or hr_culture_fit
+notes (text) → user's optional markdown notes on the interview session
+transcript (jsonb) → raw interview transcript from Vapi
+feedback_report (jsonb) → AI feedback evaluation report (scores, strengths, gaps, STAR)
 created_at (timestamp) → session start time
 ```
 

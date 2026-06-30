@@ -15,5 +15,12 @@ export async function callBackendAPI(
 ) {
 	const baseUrl =
 		process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-	return fetchWithAuth(`${baseUrl}${endpoint}`, options);
+	const response = await fetchWithAuth(`${baseUrl}${endpoint}`, options);
+
+	if (response.status === 401 && typeof window !== "undefined") {
+		// Redirect to login page if token has expired or is unauthorized
+		window.location.href = "/login";
+	}
+
+	return response;
 }

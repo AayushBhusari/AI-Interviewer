@@ -41,6 +41,13 @@ const interviewTypeMeta: Record<
   },
 };
 
+interface UserProfile {
+  name: string;
+  course: string | null;
+  qualifications: string | null;
+  goals: string | null;
+}
+
 export default function VoiceSession({
   onComplete,
   onBack,
@@ -50,8 +57,31 @@ export default function VoiceSession({
   const [loading, setLoading] = useState(false);
   const vapiRef = useRef<typeof Vapi | null>(null);
   const [dbSessionId, setDbSessionId] = useState<number | null>(null);
+  const dbSessionIdRef = useRef<number | null>(null);
   const [error, setError] = useState("");
+
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [targetRole, setTargetRole] = useState("");
+
   const interviewMeta = interviewTypeMeta[interviewType];
+
+  useEffect(() => {
+    // Fetch user profile data
+    const fetchProfile = async () => {
+      try {
+        const response = await callBackendAPI("/api/user/profile", {
+          method: "GET",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data.profile);
+        }
+      } catch (err) {
+        console.error("Failed to load profile for voice session", err);
+      }
+    };
+    void fetchProfile();
+  }, []);
 
   useEffect(() => {
     // Initialize Vapi
@@ -60,20 +90,28 @@ export default function VoiceSession({
     vapi.on("call-start", () => {
       console.log("Call started");
       setIsLive(true);
+      setLoading(false);
     });
 
     vapi.on("call-end", () => {
       console.log("Call ended");
       setIsLive(false);
-      if (dbSessionId) {
-        onComplete(dbSessionId);
+      setLoading(false);
+      if (dbSessionIdRef.current) {
+        onComplete(dbSessionIdRef.current);
       }
     });
 
     vapi.on("error", (error) => {
       console.error("Vapi error:", error);
-      setError("An error occurred during the call");
+      console.log("---------------");
+      if (error?.error?.msg) {
+        console.log(error.error.msg);
+      }
+
+      setError("Failed to establish voice session. Please ensure your microphone is enabled.");
       setIsLive(false);
+      setLoading(false);
     });
 
     vapiRef.current = vapi;
@@ -81,7 +119,7 @@ export default function VoiceSession({
     return () => {
       vapi.stop();
     };
-  }, [dbSessionId, onComplete]);
+  }, [onComplete]);
 
   const handleStartInterview = async () => {
     setLoading(true);
@@ -101,6 +139,7 @@ export default function VoiceSession({
       const data = await response.json();
       const sessionId = data.dbSessionId;
       setDbSessionId(sessionId);
+      dbSessionIdRef.current = sessionId;
 
       // Start Vapi call with dbSessionId as variable
       const vapi = vapiRef.current;
@@ -109,13 +148,17 @@ export default function VoiceSession({
           variableValues: {
             dbSessionId: sessionId.toString(),
             interviewType,
+            name: profile?.name || "",
+            course: profile?.course || "",
+            qualifications: profile?.qualifications || "",
+            goals: profile?.goals || "",
+            targetRole: targetRole,
           },
         });
       }
     } catch (err) {
       console.error("Error starting interview:", err);
       setError("Failed to start interview. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -132,7 +175,7 @@ export default function VoiceSession({
     <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Back Button */}
-        {!isLive && onBack && (
+        {!isLive && !loading && onBack && (
           <button
             onClick={onBack}
             className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition"
@@ -156,12 +199,16 @@ export default function VoiceSession({
           {/* Audio Visualization */}
           <div className="mb-12 flex justify-center">
             <div
-              className={`relative w-32 h-32 rounded-full border-4 flex items-center justify-center transition-all duration-300 ${
-                isLive
+              className={`relative w-32 h-32 rounded-full border-4 flex items-center justify-center transition-all duration-300 ${isLive
                   ? "bg-fuchsia-500/10 border-fuchsia-500/40 animate-pulse"
-                  : "bg-zinc-800 border-zinc-700"
-              }`}
+                  : loading
+                    ? "bg-violet-500/10 border-violet-500/40"
+                    : "bg-zinc-800 border-zinc-700"
+                }`}
             >
+              {loading && (
+                <div className="absolute inset-0 rounded-full border-4 border-violet-500 border-t-transparent animate-spin"></div>
+              )}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-600/20 to-transparent"></div>
 
               {/* Icon */}
@@ -172,6 +219,10 @@ export default function VoiceSession({
                     <div className="text-xs font-medium text-fuchsia-400">
                       LIVE
                     </div>
+                  </div>
+                ) : loading ? (
+                  <div className="flex flex-col items-center">
+                    <div className="text-2xl text-violet-400 animate-bounce">⚡</div>
                   </div>
                 ) : (
                   <div className="text-4xl text-zinc-500">🎧</div>
@@ -191,14 +242,38 @@ export default function VoiceSession({
                   The AI interviewer is listening. Answer clearly and naturally.
                 </p>
               </div>
+            ) : loading ? (
+              <div>
+                <p className="text-lg font-semibold text-zinc-50 mb-2 animate-pulse">
+                  Connecting to Evaluator...
+                </p>
+                <p className="text-zinc-400 max-w-sm mx-auto">
+                  Please enable microphone access if prompted. Starting mock interview session...
+                </p>
+              </div>
             ) : (
               <div>
                 <p className="text-lg font-semibold text-zinc-50 mb-2">
                   Ready to Start
                 </p>
-                <p className="text-zinc-400">
-                  Click the button below to begin your interview session
+                <p className="text-zinc-400 mb-6">
+                  Fill out the target role and click the button below to begin
+                  your session.
                 </p>
+
+                <div className="text-left mb-6 max-w-sm mx-auto">
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    What role are you interviewing for?
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Senior Frontend Engineer"
+                    value={targetRole}
+                    onChange={(e) => setTargetRole(e.target.value)}
+                    className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-50 placeholder-zinc-500 focus:outline-none focus:border-violet-600 transition"
+                    required
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -212,13 +287,21 @@ export default function VoiceSession({
 
           {/* Action Buttons */}
           <div className="flex gap-4 justify-center">
-            {!isLive ? (
+            {loading ? (
+              <button
+                disabled
+                className="px-8 py-3 bg-zinc-800 border border-zinc-700 text-zinc-400 font-semibold rounded-lg transition flex items-center gap-3 cursor-not-allowed"
+              >
+                <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin"></div>
+                Starting Interview...
+              </button>
+            ) : !isLive ? (
               <button
                 onClick={handleStartInterview}
-                disabled={loading}
+                disabled={!targetRole.trim()}
                 className="px-8 py-3 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Starting..." : "Start Interview"}
+                Start Interview
               </button>
             ) : (
               <button

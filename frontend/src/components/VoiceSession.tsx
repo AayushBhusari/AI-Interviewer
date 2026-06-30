@@ -43,6 +43,7 @@ const interviewTypeMeta: Record<
 
 export default function VoiceSession({
   onComplete,
+  onBack,
   interviewType,
 }: VoiceSessionProps) {
   const [isLive, setIsLive] = useState(false);
@@ -123,12 +124,23 @@ export default function VoiceSession({
     const vapi = vapiRef.current;
     if (vapi) {
       vapi.stop();
+      alert("interview ended");
     }
   };
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+        {/* Back Button */}
+        {!isLive && onBack && (
+          <button
+            onClick={onBack}
+            className="mb-8 flex items-center gap-2 text-zinc-400 hover:text-zinc-200 transition"
+          >
+            <span>←</span> Back to Dashboard
+          </button>
+        )}
+
         {/* Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-zinc-50 mb-2">

@@ -63,8 +63,7 @@ const interviewTypeOptions = [
 		key: "hr_culture_fit",
 		title: "HR / Culture Fit",
 		label: "HR / Culture Fit",
-		description:
-			"Motivation, values alignment, and situational judgment.",
+		description: "Motivation, values alignment, and situational judgment.",
 		accent: "from-amber-600/20 to-orange-500/20",
 	},
 ];
@@ -215,34 +214,38 @@ export default function InterviewDashboardPage() {
 	// Voice Session View
 	if (view === "voice_session") {
 		return (
-			<>
+			<div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
 				<Navbar />
-				<VoiceSession
-					onComplete={handleInterviewComplete}
-					interviewType={selectedInterviewType}
-				/>
-			</>
+				<div className="flex-1 overflow-y-auto flex flex-col">
+					<VoiceSession
+						onComplete={handleInterviewComplete}
+						interviewType={selectedInterviewType}
+					/>
+				</div>
+			</div>
 		);
 	}
 
 	// Feedback View
 	if (view === "feedback") {
 		return (
-			<>
+			<div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
 				<Navbar />
-				<FeedbackReport
-					feedback={selectedFeedback}
-					onDismiss={handleBackToDashboard}
-				/>
-			</>
+				<div className="flex-1 overflow-y-auto flex flex-col">
+					<FeedbackReport
+						feedback={selectedFeedback}
+						onDismiss={handleBackToDashboard}
+					/>
+				</div>
+			</div>
 		);
 	}
 
 	// Dashboard View
 	return (
-		<>
+		<div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
 			<Navbar />
-			<div className="min-h-screen bg-zinc-950 py-12 px-4">
+			<div className="flex-1 overflow-y-auto py-12 px-4">
 				<div className="max-w-6xl mx-auto">
 					{/* Header */}
 					<div className="mb-12">
@@ -580,6 +583,6 @@ export default function InterviewDashboardPage() {
 					</div>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }

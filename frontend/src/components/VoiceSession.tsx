@@ -6,10 +6,11 @@ import { callBackendAPI } from "@/lib/api";
 
 interface VoiceSessionProps {
   onComplete: (sessionId: number) => void;
+  onBack?: () => void;
   interviewType: InterviewTypeKey;
 }
 
-type InterviewTypeKey =
+export type InterviewTypeKey =
   | "behavioral"
   | "technical"
   | "system_design"
@@ -55,7 +56,7 @@ export default function VoiceSession({
 }: VoiceSessionProps) {
   const [isLive, setIsLive] = useState(false);
   const [loading, setLoading] = useState(false);
-  const vapiRef = useRef<typeof Vapi | null>(null);
+  const vapiRef = useRef<Vapi | null>(null);
   const [dbSessionId, setDbSessionId] = useState<number | null>(null);
   const dbSessionIdRef = useRef<number | null>(null);
   const [error, setError] = useState("");

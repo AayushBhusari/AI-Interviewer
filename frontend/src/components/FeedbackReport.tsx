@@ -14,7 +14,7 @@ interface FeedbackReportData {
 }
 
 interface FeedbackReportProps {
-  feedback: FeedbackReportData;
+  feedback?: FeedbackReportData;
   onDismiss: () => void;
 }
 

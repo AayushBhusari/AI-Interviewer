@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import VoiceSession from "@/components/VoiceSession";
+import VoiceSession, { InterviewTypeKey } from "@/components/VoiceSession";
 import FeedbackReport from "@/components/FeedbackReport";
 import Navbar from "@/components/Navbar";
 import { callBackendAPI } from "@/lib/api";
@@ -66,13 +66,13 @@ const interviewTypeOptions = [
 		description: "Motivation, values alignment, and situational judgment.",
 		accent: "from-amber-600/20 to-orange-500/20",
 	},
-];
+] as const;
 
 export default function InterviewDashboardPage() {
 	const router = useRouter();
 
 	const [view, setView] = useState<ViewState>("dashboard");
-	const [selectedInterviewType, setSelectedInterviewType] = useState(
+	const [selectedInterviewType, setSelectedInterviewType] = useState<InterviewTypeKey>(
 		interviewTypeOptions[0].key,
 	);
 	const [selectedFeedback, setSelectedFeedback] = useState<
@@ -380,7 +380,7 @@ export default function InterviewDashboardPage() {
 	}
 
 	// Feedback View
-	if (view === "feedback") {
+	if (view === "feedback" && selectedFeedback) {
 		return (
 			<div className="flex flex-col h-screen overflow-hidden bg-zinc-950">
 				<Navbar />

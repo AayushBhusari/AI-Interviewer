@@ -13,11 +13,14 @@ export async function callBackendAPI(
 	endpoint: string,
 	options: RequestInit = {},
 ) {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+	const isClient = typeof window !== "undefined";
+	const baseUrl = isClient
+		? "" // On client, route through Next.js proxy
+		: (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"); // On server, hit backend directly
+
 	const response = await fetchWithAuth(`${baseUrl}${endpoint}`, options);
 
-	if (response.status === 401 && typeof window !== "undefined") {
+	if (response.status === 401 && isClient) {
 		// Redirect to login page if token has expired or is unauthorized
 		window.location.href = "/login";
 	}

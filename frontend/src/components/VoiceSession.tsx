@@ -129,8 +129,9 @@ export default function VoiceSession({
 
     return () => {
       vapi.stop();
+      vapi.removeAllListeners();
     };
-  }, [onComplete]);
+  }, []);
 
   const handleStartInterview = async () => {
     setLoading(true);

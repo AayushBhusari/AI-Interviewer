@@ -123,35 +123,52 @@ export default function InterviewDashboardPage() {
 			return;
 		}
 
+		let active = true;
+
 		const timeInterval = setInterval(() => {
-			setPollElapsedSeconds((prev) => prev + 1);
+			if (active) {
+				setPollElapsedSeconds((prev) => prev + 1);
+			}
 		}, 1000);
 
-		const pollInterval = setInterval(async () => {
+		let pollTimeoutId: NodeJS.Timeout;
+
+		const poll = async () => {
 			try {
 				const response = await callBackendAPI(`/api/interviews/${pollSessionId}`, {
 					method: "GET",
 				});
+				
+				if (!active) return;
+
 				if (response.ok) {
 					const data = await response.json();
 					const interview = data.interview;
 					if (interview && interview.status === "completed" && interview.feedback_report) {
-						clearInterval(pollInterval);
-						clearInterval(timeInterval);
 						await refreshInterviews();
+						if (!active) return;
 						setSelectedFeedback(interview.feedback_report);
 						setView("feedback");
 						setPollSessionId(null);
+						return; // Stop polling
 					}
 				}
 			} catch (err) {
 				console.error("Error polling for feedback:", err);
 			}
-		}, 2000);
+
+			if (active) {
+				pollTimeoutId = setTimeout(poll, 2000);
+			}
+		};
+
+		// Start first poll
+		pollTimeoutId = setTimeout(poll, 2000);
 
 		return () => {
-			clearInterval(pollInterval);
+			active = false;
 			clearInterval(timeInterval);
+			clearTimeout(pollTimeoutId);
 		};
 	}, [view, pollSessionId]);
 

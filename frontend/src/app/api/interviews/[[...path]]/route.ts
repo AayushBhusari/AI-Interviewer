@@ -7,10 +7,10 @@ async function handleProxy(req: NextRequest) {
 	try {
 		// Extract path from the URL
 		const url = new URL(req.url);
-		const path = url.pathname.replace("/api/user", "");
+		const path = url.pathname.replace("/api/interviews", "");
 		
 		// Build backend URL
-		const targetUrl = `${BACKEND_URL}/api/user${path}${url.search}`;
+		const targetUrl = `${BACKEND_URL}/api/interviews${path}${url.search}`;
 		
 		// Get cookies
 		const cookieStore = await cookies();

@@ -188,6 +188,7 @@ NEXT_PUBLIC_VAPI_ASSISTANT_ID=...
 ### Interviews (Protected)
 
 - `GET /api/interviews` → Fetch all interview sessions for the logged-in user
+- `GET /api/interviews/:id` → Fetch a single interview session status and feedback
 - `POST /api/interviews/start` → Create a new interview session record
 - `PATCH /api/interviews/:id/note` → Save/update text notes for a specific session
 - `DELETE /api/interviews/:id` → Delete an interview session
@@ -273,8 +274,12 @@ created_at (timestamp) → session start time
 - [ ] Dashboard shows past interviews
 - [ ] Interview session creates DB record
 - [ ] Vapi integration starts call
-- [ ] Webhook receives transcript
-- [ ] Groq generates feedback
+- [ ] Webhook receives transcript and parses nested Vapi format
+- [ ] Groq generates feedback report using Llama 3.3
+- [ ] Frontend triggers dynamic evaluation loader screen
+- [ ] Loader screen polls single interview endpoint `GET /api/interviews/:id`
+- [ ] Loader screen successfully auto-redirects to Feedback report on completed status
+- [ ] Cancel button on loader page returns to dashboard and stops polling
 - [ ] Feedback displays correctly
 - [ ] Logout clears all cookies
 

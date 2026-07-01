@@ -1,307 +1,218 @@
-# 🚀 MENTORQUE MOCK AI - QUICK START
+# 🎙️ Mentorque Mock AI - Complete Setup Guide
 
-## Files Created/Modified
-
-### Backend Files (Complete)
-
-✅ `backend/server.js` - Express server with auth, interview, and webhook routes
-✅ `backend/db.js` - Neon/PostgreSQL connection & auto-schema init
-✅ `backend/middleware/auth.js` - JWT verification from cookie or bearer token
-✅ `backend/package.json` - Dependencies
-✅ `backend/.env.example` - Config template
-
-### Repo Root Files
-
-✅ `.gitignore` - Single repository-level ignore file for backend and frontend
-
-### Frontend Files (Updated)
-
-✅ `frontend/package.json` - Added @vapi-ai/web
-✅ `frontend/.env` - Vapi & backend config
-✅ `frontend/src/app/api/auth/login/route.ts` - Backend integration
-✅ `frontend/src/app/api/auth/signup/route.ts` - New signup endpoint
-✅ `frontend/src/app/api/auth/logout/route.ts` - Updated logout
-✅ `frontend/src/app/api/user/[[...path]]/route.ts` - New user profile proxy route
-✅ `frontend/src/app/login/page.tsx` - Modern dark theme
-✅ `frontend/src/app/signup/page.tsx` - New signup page
-✅ `frontend/src/app/onboarding/page.tsx` - User onboarding form (collects professional details/goals)
-✅ `frontend/src/app/profile/page.tsx` - User profile page (view and edit details)
-✅ `frontend/src/app/dashboard/page.tsx` - Interview dashboard with type picker
-✅ `frontend/src/app/page.tsx` - Home redirect logic
-✅ `frontend/src/lib/api.ts` - API client with credentialed requests
-✅ `frontend/src/components/Navbar.tsx` - Navigation
-✅ `frontend/src/components/VoiceSession.tsx` - Vapi integration and interview type handoff
-✅ `frontend/src/components/FeedbackReport.tsx` - AI feedback display
-
-## 🔄 Key Changes from Your Existing Code
-
-### 1. JWT Authentication Strategy
-
-**BEFORE**: Frontend only (jose library, hardcoded credentials)
-
-```typescript
-// Old - hardcoded test@example.com
-if (email === "test@example.com" && password === "password123")
-```
-
-**AFTER**: Backend-verified (jsonwebtoken + bcryptjs + database)
-
-```typescript
-// New - connects to PostgreSQL
-const user = await pool.query("SELECT ... FROM users WHERE email = $1");
-const isValid = await bcryptjs.compare(password, user.password_hash);
-```
-
-✅ **No conflicts** - Kept your HTTP-only cookie approach, enhanced with database.
+Welcome to the **Mentorque Mock AI** setup guide. This document walks you through setting up the frontend, backend, database, and Vapi AI voice integrations from scratch.
 
 ---
 
-### 2. Login Flow Integration
-
-**BEFORE**:
-
-```typescript
-const token = await signJWT({ userId: "user_99", email: email });
-```
-
-**AFTER**:
-
-```typescript
-// Frontend calls backend
-const backendResponse = await fetch('/api/login', ...)
-const { token, userId } = await backendResponse.json()
-```
-
-✅ **Frontend → Backend architecture** - Your JWT utilities still work, now with real data.
+## 🏗️ Technology Stack
+- **Frontend**: Next.js (App Router, Tailwind CSS, `@vapi-ai/web` SDK)
+- **Backend**: Node.js & Express (JWT authentication, HTTP-only cookies)
+- **Database**: Neon PostgreSQL (with automatic schema initialization)
+- **AI Evaluator**: Groq Cloud SDK (`llama-3.3-70b-versatile`)
+- **Voice Agent**: Vapi AI
 
 ---
 
-### 3. Architecture Pattern
-
-```
-BEFORE:                          AFTER:
-┌─────────────────┐             ┌──────────────┐
-│   Next.js       │             │   Next.js    │
-│  (hardcoded)    │             │  (frontend)  │
-└─────────────────┘             └──────┬───────┘
-                                       │
-                                       │ HTTP Calls
-                                       │
-                                ┌──────▼────────┐
-                                │ Express       │
-                                │ (new)         │
-                                ├───────────────┤
-                                │ PostgreSQL    │
-                                │ (new)         │
-                                └───────────────┘
-```
+## 📋 Prerequisites
+Before starting, ensure you have:
+1. **Node.js** (v18.x or higher) installed.
+2. A **Neon Console** account (or any PostgreSQL database).
+3. A **Groq Cloud** account (to obtain a `GROQ_API_KEY` for evaluation).
+4. A **Vapi AI** account (to obtain a public key and setup a voice assistant).
+5. **ngrok** installed (needed to route Vapi's end-of-call webhooks to your local development backend).
 
 ---
 
-## 🛠 Setup Instructions
+## 🛠️ Step-by-Step Setup
 
-### Step 1: Install Backend Dependencies
+### Step 1: Clone and Configure the Backend
 
-```bash
-cd backend
-npm install
-```
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
 
-### Step 2: Configure Backend Environment
+2. Install backend dependencies:
+   ```bash
+   npm install
+   ```
 
-Create `backend/.env` from `backend/.env.example` and set your real Neon connection string.
+3. Create your local environment configuration file:
+   ```bash
+   cp .env.example .env
+   ```
 
-```
-PORT=5000
-NODE_ENV=development
-DATABASE_URL=postgresql://neondb_owner:your_password@ep-your-project.neon.tech/neondb?sslmode=require
-JWT_SECRET=your_secure_random_string_here_generate_a_strong_one
-GROQ_API_KEY=your_groq_api_key_here
-VAPI_API_KEY=your_vapi_api_key_here
-FRONTEND_URL=http://localhost:3000
-```
+4. Open `backend/.env` and update the values:
+   ```env
+   PORT=5000
+   NODE_ENV=development
 
-### Step 3: Start Backend
+   # PostgreSQL Connection String (e.g., from Neon Console)
+   DATABASE_URL=postgresql://neondb_owner:password@ep-xxxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
 
-```bash
-cd backend
-npm start
-# ✅ Database initialized successfully
-# ✅ Backend server running on port 5000
-```
+   # Secure JWT secret (use a long random alphanumeric string)
+   JWT_SECRET=your_custom_secure_secret_key_here
 
-### Step 4: Install Frontend Dependencies
+   # Groq API Key (from https://console.groq.com/)
+   GROQ_API_KEY=gsk_your_groq_api_key
 
-```bash
-cd frontend
-npm install
-```
+   # Vapi Private API Key (from https://dashboard.vapi.ai/ -> API Keys)
+   VAPI_API_KEY=your_vapi_private_api_key
 
-### Step 5: Configure Frontend Environment
+   FRONTEND_URL=http://localhost:3000
+   ```
 
-**frontend/.env**:
-
-```
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-NEXT_PUBLIC_VAPI_PUBLIC_KEY=your_vapi_public_key
-NEXT_PUBLIC_VAPI_ASSISTANT_ID=your_vapi_assistant_id
-```
-
-### Step 6: Start Frontend
-
-```bash
-cd frontend
-npm run dev
-# Open http://localhost:3000
-```
+5. Start the Express server:
+   ```bash
+   npm start
+   ```
+   *Note: On launch, the backend will automatically initialize the required PostgreSQL tables (`users` and `interview_sessions`) if they do not already exist.*
 
 ---
 
-## 🧪 Test the Flow
+### Step 2: Configure the Frontend
 
-### 1. Create Account
+1. Navigate to the frontend directory:
+   ```bash
+   cd ../frontend
+   ```
 
-- Go to http://localhost:3000/signup
-- Sign up with: name, email, password, confirmPassword
-- Auto-redirects to **Onboarding page** (`/onboarding`) to input surname, age, course/major, qualifications, and career goals.
-- Submitting onboarding details saves the profile and redirects to the **Dashboard** (`/dashboard`).
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
 
-### 2. Interview Flow
+3. Create the environment configuration file:
+   ```bash
+   # Create a .env file in the frontend/ directory
+   ```
 
-- Select an interview type card on the dashboard
-- Click the matching start button
-- Voice session begins with Vapi AI
-- After call ends → Polling for feedback
-- Feedback displays with scores, strengths, gaps, STAR feedback
+4. Populate `frontend/.env` with your API endpoints and Vapi credentials:
+   ```env
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+   
+   # Public Key from Vapi Dashboard (API Keys tab)
+   NEXT_PUBLIC_VAPI_PUBLIC_KEY=your_vapi_public_key
 
-### 3. Dashboard & Profile
+   # Assistant ID from Vapi Dashboard (Assistants tab)
+   NEXT_PUBLIC_VAPI_ASSISTANT_ID=your_vapi_assistant_id
+   ```
 
-- View past interviews
-- Take and edit notes for each interview
-- Delete past interview sessions
-- See performance scores and detailed reports
-- Click the Navbar links to view/edit your **Profile** (`/profile`)
-
----
-
-## 📊 Database Schema (Auto-Created)
-
-### users
-
-```sql
-id | name | email | password_hash | surname | age | course | qualifications | goals | created_at
-```
-
-### interview_sessions
-
-```sql
-id | user_id | status | interview_type | notes | transcript | feedback_report | created_at
-```
+5. Start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+   *Open [http://localhost:3000](http://localhost:3000) in your browser.*
 
 ---
 
-## 🔐 Security Features
+### Step 3: Setup the Vapi Voice Assistant (Nico)
 
-✅ **HTTP-only Cookies** - Prevents JavaScript access (XSS defense)
-✅ **JWT Expiration** - 2-hour token lifetime
-✅ **Automatic Redirect on Expiry** - Intercepts `401 Unauthorized` responses globally in client-side requests and routes the user back to the login screen.
-✅ **Password Hashing** - bcryptjs with salt rounds
-✅ **CORS** - Frontend/backend communication with credentials
-✅ **Protected Routes** - JWT middleware verification from cookie or bearer token
-✅ **Cascading Deletes** - User deletion removes their data
-✅ **Neon-friendly Pooling** - Backend pool tuned for serverless Postgres
-✅ **Interview Type Picker** - Behavioral, Technical, System Design, HR / Culture Fit
-✅ **Dependency Override Security** - Resolved `@daily-co/daily-js` to `^0.91.0` within nested dependencies (like `@vapi-ai/web`) to fix deprecated support warnings in the browser console.
+The mock interview voice agent (named `Nico`) uses dynamic system prompts that pivot depending on the selected interview type (`behavioral`, `technical`, `system_design`, or `hr_culture_fit`).
+
+1. Go to the **Vapi Dashboard** -> **Assistants** -> click **Create Assistant** -> select **Import JSON**.
+2. Paste the following configuration JSON block:
+   ```json
+   {
+     "name": "Nico",
+     "voice": {
+       "speed": 1,
+       "version": 2,
+       "voiceId": "Sagar",
+       "language": "en",
+       "provider": "vapi"
+     },
+     "model": {
+       "model": "gpt-4o-mini",
+       "messages": [
+         {
+           "role": "system",
+           "content": "# ROLE & IDENTITY\nYou are an expert, elite global corporate interviewer and technical evaluation engine. Your persona is highly observant, sharp, professional, and adaptive. \n\n# DYNAMIC ADAPTATION (CRITICAL)\nYou must read the current context variable: {{interviewType}}. \nDepending on its value, you must completely pivot your persona, focus area, and evaluation strategy according to the rules below:\n\n----------------------------------------------------------------------\n[IF interviewType IS \"Behavioral\"]\n- CORE TEST: Communication, STAR structure, self-awareness.\n- PERSONA: Executive Performance Coach—insightful, probing, analytical.\n- STRATEGY: Start with a question about an engineering highlight or failure. Listen closely to their narrative. If they use collective words like \"we\", immediately push back to find their personal action (\"What was your specific role in that resolution?\"). Verify they hit Situation, Task, Action, and Result.\n\n[IF interviewType IS \"Technical\"]\n- CORE TEST: Depth of knowledge, algorithm/logic choice, problem-solving approach.\n- PERSONA: Core Tech Lead—deeply knowledgeable, precise, strict on edge cases.\n- STRATEGY: Ask about a complex language feature, optimization challenge, or a time they had to debug a low-level error (e.g., memory leak, concurrency issue). Drill deep into the \"why\" behind their implementation choices, libraries used, and how they ensured code efficiency.\n\n[IF interviewType IS \"System Design\"]\n- CORE TEST: Architectural thinking, horizontal scaling, trade-offs, handling complexity.\n- PERSONA: Principal Systems Architect—high-level, pragmatic, focused on bottlenecks.\n- STRATEGY: Present a macro scaling scenario (e.g., building a real-time tracking system or scaling a heavy image hosting database like SnapSort). Question them on data pipelines, caching, state management, single points of failure, and cost-vs-performance trade-offs.\n\n[IF interviewType IS \"HR / Culture Fit\"]\n- CORE TEST: Motivation, company values alignment, situational judgment under pressure.\n- PERSONA: Director of People—warm yet deeply observant, assessing cultural additive traits.\n- STRATEGY: Focus on situational conflicts, handling tight deadlines, managing scope creep, or disagreement with stakeholders. Evaluate empathy, maturity, growth mindset, and long-term professional motivation.\n----------------------------------------------------------------------\n\n# COGNITIVE ACCENT ADAPTATION\nThe candidate may speak with an Indian English dialect or use regional technical phrasings. Adapt your acoustic processing to flawlessly capture local tech terms and conversational patterns while maintaining your clear, premium global corporate voice.\n\n# GENERAL INTERACTION LAWS\n1. ONE INQUIRY AT A TIME: Never ask multi-part questions or list out an itemized quiz script. Ask exactly one question and completely pause for audio input.\n2. CONCISE VOCAL TURNS: Keep responses short, conversational, and punchy. Avoid massive blocks of text. Limit yourself to 1 to 3 targeted sentences before handing the floor back.\n3. VOICE-ONLY CALL CONSTRAINTS: You operate via a low-latency browser channel. Do not say things like \"as seen in the chat interface below.\" Treat this as a high-fidelity live voice call.\n\n# CLOSING PIPELINE\nOnce you have collected enough data across 3 to 4 technical threads, or if the candidate explicitly wraps up, close the interaction gracefully. Tell them that their comprehensive evaluation report is being synthesized and will hit their active dashboard immediately."
+         }
+       ],
+       "provider": "openai"
+     },
+     "firstMessage": "Hello. Welcome to your Mentorque evaluation, {{name}}. You have selected the {{interviewType}} track for the {{targetRole}} role. I've initialized our testing framework, so let's jump right in.",
+     "voicemailMessage": "Please call back when you're available.",
+     "endCallMessage": "Goodbye.",
+     "transcriber": {
+       "model": "nova-2-general",
+       "language": "en-IN",
+       "numerals": true,
+       "provider": "deepgram",
+       "fallbackPlan": {
+         "autoFallback": {
+           "enabled": true
+         }
+       }
+     },
+     "maxDurationSeconds": 200,
+     "analysisPlan": {
+       "summaryPlan": {
+         "enabled": false
+       },
+       "successEvaluationPlan": {
+         "enabled": false
+       }
+     },
+     "backgroundDenoisingEnabled": true,
+     "compliancePlan": {
+       "hipaaEnabled": false,
+       "pciEnabled": false,
+       "zdrEnabled": false
+     },
+     "firstMessageInterruptionsEnabled": false
+   }
+   ```
+3. Copy the **Assistant ID** (UUID) and place it as `NEXT_PUBLIC_VAPI_ASSISTANT_ID` in your `frontend/.env`.
 
 ---
 
-## 📝 API Endpoints Ready
+### Step 4: Configure Vapi Webhook (Crucial for AI Reports)
 
-```
-POST   /api/signup              - Create account
-POST   /api/login               - Login & get token
-GET    /api/user/profile        - Fetch user profile & onboarding info
-POST   /api/user/profile        - Update user profile details
-GET    /api/interviews          - Fetch user interviews (protected)
-POST   /api/interviews/start    - Create session (protected)
-PATCH  /api/interviews/:id/note - Update interview notes
-DELETE /api/interviews/:id      - Delete an interview session
-POST   /api/vapi-webhook        - Receive transcript & generate feedback
-GET    /api/health              - Server health check
-```
+To allow Vapi to send transcripts back to your local backend for AI evaluation once the call finishes, you must expose your local backend port `5000` to the internet.
 
----
+1. Start **ngrok** to tunnel traffic to your local server:
+   ```bash
+   ngrok http 5000
+   ```
 
-## 🎯 What's NOT Implemented (Optional Enhancements)
+2. Copy the secure Forwarding HTTPS URL generated by ngrok (e.g., `https://xxxx-xxxx.ngrok-free.dev`).
 
-These can be added later if needed:
-
-- Interview scheduling
-- Video option
-- Export reports
-- Admin dashboard
-- Email notifications
-- Payment integration
-
----
-
-## ⚠️ Important Notes
-
-1. **Vapi Setup Required**: Get credentials from vapi.ai
-2. **Groq API Key Required**: For feedback generation
-3. **Neon Database Required**: Use the connection string from your Neon project settings
-4. **Both Servers Need to Run**: Backend on 5000, Frontend on 3000
-5. **Env Files Stay Local**: Commit `.env.example`, keep `.env` and `.env.local` out of Git
-6. **Interview Type is Required in UI**: The dashboard now asks the user to choose a type before starting
+3. Configure Vapi:
+   * Go to the **Vapi Dashboard** -> **Assistants** -> select the imported assistant.
+   * Locate the **Server URL** input box.
+   * Paste your ngrok forwarding URL and append `/api/vapi-webhook` to the end.
+     * Example: `https://xxxx-xxxx.ngrok-free.dev/api/vapi-webhook`
+   * Click **Save** (Publish).
 
 ---
 
 ## 🆘 Troubleshooting
 
-**"Cannot connect to backend"**
+### 1. Port 5000 is Already in Use (`EADDRINUSE`)
+If your backend fails to start because port 5000 is occupied:
+* **Windows (PowerShell)**:
+  ```powershell
+  Get-Process -Id (Get-NetTCPConnection -LocalPort 5000).OwningProcess | Stop-Process -Force
+  ```
+* **macOS / Linux**:
+  ```bash
+  kill -9 $(lsof -t -i:5000)
+  ```
 
-```bash
-# Ensure backend is running
-cd backend && npm start
-# Verify PORT=5000 in .env
-```
+### 2. Vapi Call Stuck "Connecting"
+* **Brave Browser Shields**:
+  Brave's default privacy protection blocks WebRTC device queries and socket handshakes. 
+  1. Click the **Lion icon** in the URL address bar.
+  2. Toggle **Shields to Off** for localhost.
+  3. Ensure `Settings` -> `Privacy` -> `WebRTC IP Handling` is set to **Default**.
+* **Microphone Access**:
+  Ensure you have allowed camera/microphone access permissions in your browser settings.
 
-**"Database does not exist"**
+### 3. Database Connection Times Out
+* Check if your IP address is whitelisted in your Neon Postgres project dashboard.
+* Verify the connection string query options in `backend/.env` contain `sslmode=require`.
 
-```bash
-# Verify your Neon DATABASE_URL is correct in backend/.env
-# Make sure the Neon database exists in your project dashboard
-```
-
-**"JWT_SECRET undefined"**
-
-```bash
-# Add to backend/.env
-JWT_SECRET=your_random_secret_key
-```
-
-**"Vapi call not starting"**
-
-- Verify VAPI_PUBLIC_KEY in frontend/.env
-- Check VAPI_ASSISTANT_ID exists in Vapi dashboard
-
-**"Invalid interview type"**
-
-- Make sure the dashboard option is one of behavioral, technical, system_design, or hr_culture_fit
-- Confirm the selected card is passed into the start button flow
-
----
-
-## 📚 Full Documentation
-
-See `README.md` for:
-
-- Complete architecture overview
-- Database schema details
-- Authentication flow diagrams
-- Code quality notes
-- Deployment considerations
-
----
-
-**🎉 You're all set! The platform is ready to run.**
+### 4. JWT Authentication Expiry Redirection
+* The platform automatically routes users back to the `/login` page if the backend issues a `401 Unauthorized` token expiry response. If this occurs, simply sign back in.

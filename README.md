@@ -202,7 +202,9 @@ CREATE TABLE interview_sessions (
 7. Call ends → Vapi sends webhook to `POST /api/vapi-webhook`
 8. Backend loads the stored interview type, sends the transcript to Groq, and generates type-specific feedback
 9. Feedback JSON is saved to the database
-10. Frontend polls for completion and displays the report
+10. User clicks "Go Home" on Call Ended modal -> Frontend transitions to full-screen dynamic loader page
+11. Loader page polls `GET /api/interviews/:id` every 2 seconds, displaying progress milestones (and providing a "Cancel & Return to Dashboard" button)
+12. Once status is `completed`, the loader automatically unlocks and renders the Feedback Report view.
 
 ## 🎨 Design System
 
@@ -249,7 +251,9 @@ CREATE TABLE interview_sessions (
 - ✅ Variable injection for session tracking and interview type
 - ✅ Connecting/loading state UI (displays connecting spinner and messages prior to Vapi connection handshake completion)
 - ✅ Event listeners for call lifecycle
-- ✅ Polling mechanism for feedback completion
+- ✅ Full-screen "Evaluating Performance" loader board with progress milestones
+- ✅ Dynamic polling mechanism on single endpoint (`GET /api/interviews/:id`) with auto-redirect to completed report
+- ✅ "Cancel & Return to Dashboard" escape button on loader screen
 
 ### AI Feedback
 

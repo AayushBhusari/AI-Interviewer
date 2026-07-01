@@ -121,13 +121,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 text-center">
-          <p className="text-zinc-500 text-xs">
-            Demo: Use any email with password &quot;password123&quot; after
-            signup
-          </p>
-        </div>
+
       </div>
     </div>
   );

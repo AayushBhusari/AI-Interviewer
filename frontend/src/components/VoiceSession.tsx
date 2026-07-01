@@ -93,7 +93,18 @@ export default function VoiceSession({
       setIsLive(true);
       setLoading(false);
     });
+    //test here
+    vapi.on('speech-start', () => {
+      console.log('🎤 Hardware Signal: Mic detected audio threshold crossing.');
+    });
 
+    vapi.on('message', (message) => {
+      // This event captures the exact packets Vapi sends back while you are talking
+      if (message.type === 'transcript' && message.role === 'user') {
+        console.log(`✨ Live User Text Captured: ${message.transcript}`);
+      }
+    });
+    //test end
     vapi.on("call-end", () => {
       console.log("Call ended");
       setIsLive(false);

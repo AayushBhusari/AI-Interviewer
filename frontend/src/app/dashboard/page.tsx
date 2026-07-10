@@ -31,7 +31,11 @@ interface Interview {
 	feedback_report?: FeedbackReportData;
 }
 
-type ViewState = "dashboard" | "voice_session" | "feedback" | "generating_report";
+type ViewState =
+	| "dashboard"
+	| "voice_session"
+	| "feedback"
+	| "generating_report";
 
 // NOTE: reconstructed — adjust labels/accents/keys to match your actual options.
 const interviewTypeOptions = [
@@ -72,9 +76,8 @@ export default function InterviewDashboardPage() {
 	const router = useRouter();
 
 	const [view, setView] = useState<ViewState>("dashboard");
-	const [selectedInterviewType, setSelectedInterviewType] = useState<InterviewTypeKey>(
-		interviewTypeOptions[0].key,
-	);
+	const [selectedInterviewType, setSelectedInterviewType] =
+		useState<InterviewTypeKey>(interviewTypeOptions[0].key);
 	const [selectedFeedback, setSelectedFeedback] = useState<
 		FeedbackReportData | undefined
 	>(undefined);
@@ -135,16 +138,23 @@ export default function InterviewDashboardPage() {
 
 		const poll = async () => {
 			try {
-				const response = await callBackendAPI(`/api/interviews/${pollSessionId}`, {
-					method: "GET",
-				});
-				
+				const response = await callBackendAPI(
+					`/api/interviews/${pollSessionId}`,
+					{
+						method: "GET",
+					},
+				);
+
 				if (!active) return;
 
 				if (response.ok) {
 					const data = await response.json();
 					const interview = data.interview;
-					if (interview && interview.status === "completed" && interview.feedback_report) {
+					if (
+						interview &&
+						interview.status === "completed" &&
+						interview.feedback_report
+					) {
 						await refreshInterviews();
 						if (!active) return;
 						setSelectedFeedback(interview.feedback_report);
@@ -305,7 +315,6 @@ export default function InterviewDashboardPage() {
 					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
 					<div className="max-w-md w-full bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-8 backdrop-blur-md shadow-2xl relative text-center">
-						
 						{/* Pulsing Visual Wave Circle */}
 						<div className="relative w-28 h-28 mx-auto mb-8 flex items-center justify-center">
 							<div className="absolute inset-0 rounded-full bg-violet-500/10 border border-violet-500/20 animate-ping duration-[2500ms]"></div>
@@ -320,26 +329,37 @@ export default function InterviewDashboardPage() {
 							Evaluating Performance
 						</h2>
 						<p className="text-zinc-400 text-sm mb-8 leading-relaxed">
-							Our AI agent is reviewing the audio transcript and scoring your answers. Please keep this page open.
+							Our AI agent is reviewing the audio transcript and
+							scoring your answers. Please keep this page open.
 						</p>
 
 						{/* Progress Milestones */}
 						<div className="space-y-4 text-left max-w-xs mx-auto mb-8">
 							<div className="flex items-center gap-3">
-								<span className="text-emerald-400 text-lg">✓</span>
-								<span className="text-sm font-medium text-zinc-300">Voice call completed</span>
+								<span className="text-emerald-400 text-lg">
+									✓
+								</span>
+								<span className="text-sm font-medium text-zinc-300">
+									Voice call completed
+								</span>
 							</div>
 
 							<div className="flex items-center gap-3">
 								{pollElapsedSeconds >= 4 ? (
 									<>
-										<span className="text-emerald-400 text-lg">✓</span>
-										<span className="text-sm font-medium text-zinc-300">Transcript compiled</span>
+										<span className="text-emerald-400 text-lg">
+											✓
+										</span>
+										<span className="text-sm font-medium text-zinc-300">
+											Transcript compiled
+										</span>
 									</>
 								) : (
 									<>
 										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-										<span className="text-sm text-zinc-400 animate-pulse">Compiling transcript...</span>
+										<span className="text-sm text-zinc-400 animate-pulse">
+											Compiling transcript...
+										</span>
 									</>
 								)}
 							</div>
@@ -347,18 +367,26 @@ export default function InterviewDashboardPage() {
 							<div className="flex items-center gap-3">
 								{pollElapsedSeconds >= 8 ? (
 									<>
-										<span className="text-emerald-400 text-lg">✓</span>
-										<span className="text-sm font-medium text-zinc-300">AI analysis finished</span>
+										<span className="text-emerald-400 text-lg">
+											✓
+										</span>
+										<span className="text-sm font-medium text-zinc-300">
+											AI analysis finished
+										</span>
 									</>
 								) : pollElapsedSeconds >= 4 ? (
 									<>
 										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-										<span className="text-sm text-zinc-400 animate-pulse">AI evaluating response...</span>
+										<span className="text-sm text-zinc-400 animate-pulse">
+											AI evaluating response...
+										</span>
 									</>
 								) : (
 									<>
 										<span className="w-2 h-2 rounded-full bg-zinc-700"></span>
-										<span className="text-sm text-zinc-500">AI evaluation pending</span>
+										<span className="text-sm text-zinc-500">
+											AI evaluation pending
+										</span>
 									</>
 								)}
 							</div>
@@ -367,17 +395,23 @@ export default function InterviewDashboardPage() {
 								{pollElapsedSeconds >= 12 ? (
 									<>
 										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-										<span className="text-sm text-zinc-400 animate-pulse">Building report card...</span>
+										<span className="text-sm text-zinc-400 animate-pulse">
+											Building report card...
+										</span>
 									</>
 								) : pollElapsedSeconds >= 8 ? (
 									<>
 										<span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></span>
-										<span className="text-sm text-zinc-400 animate-pulse">Compiling metrics...</span>
+										<span className="text-sm text-zinc-400 animate-pulse">
+											Compiling metrics...
+										</span>
 									</>
 								) : (
 									<>
 										<span className="w-2 h-2 rounded-full bg-zinc-700"></span>
-										<span className="text-sm text-zinc-500">Building report card</span>
+										<span className="text-sm text-zinc-500">
+											Building report card
+										</span>
 									</>
 								)}
 							</div>
@@ -455,10 +489,11 @@ export default function InterviewDashboardPage() {
 												option.key,
 											);
 										}}
-										className={`text-left rounded-xl border p-5 transition hover:scale-[1.01] ${isSelected
+										className={`text-left rounded-xl border p-5 transition hover:scale-[1.01] ${
+											isSelected
 												? `border-violet-500 bg-gradient-to-br ${option.accent} shadow-lg shadow-violet-500/20`
 												: "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
-											}`}
+										}`}
 									>
 										<div className="flex items-start justify-between gap-4">
 											<div>
@@ -659,7 +694,7 @@ export default function InterviewDashboardPage() {
 																className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
 															>
 																{savingNoteId ===
-																	interview.id
+																interview.id
 																	? "Saving..."
 																	: "Save note"}
 															</button>
@@ -738,7 +773,7 @@ export default function InterviewDashboardPage() {
 														className="rounded-lg border border-red-900/50 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-950/50 disabled:opacity-50"
 													>
 														{deletingId ===
-															interview.id
+														interview.id
 															? "Deleting..."
 															: "Delete"}
 													</button>

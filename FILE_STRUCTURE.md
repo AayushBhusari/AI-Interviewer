@@ -1,4 +1,4 @@
-📁 MENTORQUE MOCK AI - CURRENT FILE STRUCTURE
+📁 ADLER MOCK AI - CURRENT FILE STRUCTURE
 
 ```
 ai-interview/
@@ -105,17 +105,17 @@ ai-interview/
 
 ```json
 {
-  "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.3",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.3",
-    "dotenv": "^16.3.1",
-    "cors": "^2.8.5",
-    "axios": "^1.6.7",
-    "openai": "^4.40.0",
-    "groq-sdk": "^0.15.0"
-  }
+	"dependencies": {
+		"express": "^4.18.2",
+		"pg": "^8.11.3",
+		"bcryptjs": "^2.4.3",
+		"jsonwebtoken": "^9.0.3",
+		"dotenv": "^16.3.1",
+		"cors": "^2.8.5",
+		"axios": "^1.6.7",
+		"openai": "^4.40.0",
+		"groq-sdk": "^0.15.0"
+	}
 }
 ```
 
@@ -158,7 +158,7 @@ ai-interview/
 ```
 PORT=5000
 NODE_ENV=development
-DATABASE_URL=postgresql://user:pass@localhost:5432/mentorque_db
+DATABASE_URL=postgresql://user:pass@localhost:5432/adler_db
 JWT_SECRET=secure_random_string
 GROQ_API_KEY=gsk_...
 VAPI_API_KEY=...

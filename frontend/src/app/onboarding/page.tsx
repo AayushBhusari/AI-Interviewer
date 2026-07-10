@@ -10,7 +10,7 @@ export default function OnboardingPage() {
 	const [course, setCourse] = useState("");
 	const [qualifications, setQualifications] = useState("");
 	const [goals, setGoals] = useState("");
-	
+
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
@@ -52,16 +52,20 @@ export default function OnboardingPage() {
 				{/* Header */}
 				<div className="mb-8 text-center">
 					<h1 className="text-3xl font-bold text-zinc-50 mb-2">
-						Welcome to Mentorque!
+						Welcome to Adler!
 					</h1>
 					<p className="text-zinc-400">
-						Let's get to know you better to personalize your interviews.
+						Let's get to know you better to personalize your
+						interviews.
 					</p>
 				</div>
 
 				{/* Card */}
 				<div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8">
-					<form onSubmit={handleOnboardingSubmit} className="space-y-4">
+					<form
+						onSubmit={handleOnboardingSubmit}
+						className="space-y-4"
+					>
 						<div className="grid grid-cols-2 gap-4">
 							{/* Surname Input */}
 							<div>
@@ -119,7 +123,9 @@ export default function OnboardingPage() {
 							<textarea
 								placeholder="e.g. React, Node.js, Python, AWS..."
 								value={qualifications}
-								onChange={(e) => setQualifications(e.target.value)}
+								onChange={(e) =>
+									setQualifications(e.target.value)
+								}
 								rows={2}
 								required
 								className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-50 placeholder-zinc-500 focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition"
@@ -154,7 +160,9 @@ export default function OnboardingPage() {
 							disabled={loading}
 							className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-lg transition disabled:opacity-50 mt-6"
 						>
-							{loading ? "Saving..." : "Complete Setup & Go to Dashboard"}
+							{loading
+								? "Saving..."
+								: "Complete Setup & Go to Dashboard"}
 						</button>
 					</form>
 				</div>

@@ -1,7 +1,7 @@
 {
-	"name": "mentorque-backend",
+	"name": "adler-backend",
 	"version": "1.0.0",
-	"description": "Mentorque Mock AI Interview Platform Backend",
+	"description": "Adler Mock AI Interview Platform Backend",
 	"main": "server.js",
 	"type": "module",
 	"scripts": {

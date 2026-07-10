@@ -1,10 +1,10 @@
-# 🎤 Mentorque Mock AI - Complete Implementation Guide
+# 🎤 Adler Mock AI - Complete Implementation Guide
 
 A full-stack AI-powered mock interview platform with voice interface, PostgreSQL backend, and JWT authentication.
 
 ## 📋 Project Overview
 
-**Mentorque Mock AI** is a full-stack mock interview platform featuring:
+**Adler Mock AI** is a full-stack mock interview platform featuring:
 
 - 🔐 **Backend-owned JWT auth** - bcryptjs password hashing, HTTP-only cookies, protected API routes
 - 🎙️ **Vapi AI Voice Integration** - Real-time voice interviews with AI evaluator
